@@ -37,6 +37,12 @@
   stroke: #e3e3e3;
 }
 
+.stateCircleTrans {
+  fill: #89bdd3;
+  fill-opacity: 0;
+  stroke: #e3e3e3;
+}
+
 .chart {
   display: block;
   margin: 0;
@@ -46,7 +52,6 @@
   padding: 6px;
   font-size: 12px;
   line-height: 1;
-  line-height: 1.5em;
   color: #fff;
   text-align: center;
   text-transform: capitalize;
@@ -67,6 +72,18 @@
   text-align: center;
   offset: 0 -30;
 } */
+
+.regression {
+  stroke-width: 2px;
+  stroke: steelblue;
+  stroke-dasharray: 10,5;
+}
+
+.equation {
+  font-size: 12px;
+  margin-top: 10px;
+  text-align: center;
+}
 
 /* Mobile Rules */
 @media screen and (max-width: 530px) {

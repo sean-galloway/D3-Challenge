@@ -141,7 +141,7 @@ function updateChart() {
     yAxis.transition(t).call(yAxisCall);
 
     // Update the circles
-    var circles = chartGroup.selectAll("circle")
+    var circles = chartGroup.selectAll(".stateCircle")
         .data(healthData);
 
     // remove the unused circles
@@ -194,18 +194,46 @@ function updateChart() {
         .attr("fill-opacity", 1)
         .attr("y", function(d){ return y(d[optionListY[optionY]]) + abbrYoffset });
 
+    // Update the circles
+    var transCircles = chartGroup.selectAll(".stateCircleTrans")
+        .data(healthData);
+
+    // Created transparent circles to go on top so tool tips aren't so flaky
+    // remove the unused circles
+    transCircles.exit().transition(t)
+        .attr("fill-opacity", 0.0)
+        .attr("cy", y(0))
+        .remove();
+
+    // Update the cx/cy for the remaining circles
+    transCircles.transition(t)
+        .attr("cx", function(d){ return x(d[optionListX[optionX]]) })
+        .attr("cy", function(d){ return y(d[optionListY[optionY]]) });
+
+    // Add all of the new circles
+    transCircles.enter().append("circle").transition(t)
+        .attr("cx", function(d){ return x(d[optionListX[optionX]]) })
+        .attr("cy", y(0))
+        .attr("r", circleRadius)
+        .attr("class", "stateCircleTrans")
+        .attr("fill-opacity", 0.0)
+        .transition(t)
+        .attr("fill-opacity", 0.0)
+        .attr("cy", function(d){ return y(d[optionListY[optionY]]) });
+
     // Set up the tool tip
     var tool_tip = d3.tip()
         .attr("class", "d3-tip")
         .offset([-8, 0])
-        .html(function(d) { return `${d.state}<br>${optionListXTitle[optionX]}: ${d[optionListX[optionX]]}<br>${optionListYTitle[optionY]}: ${d[optionListY[optionY]]}`; });
+        .html(function(d) { return `<strong>${d.state}</strong><br>${optionListXTitle[optionX]}: ${d[optionListX[optionX]]}<br>${optionListYTitle[optionY]}: ${d[optionListY[optionY]]}`; });
 
     // Link the tool tip to the chart
-    chartGroup.call(tool_tip);
+    svg.call(tool_tip);
 
     // Set up the listeners
-    circles.on("mouseover", function (d) { tool_tip.show(d, this);})
+    transCircles
             .on("mousemove", function (d) { tool_tip.show(d, this);})
+            .on("mouseover", function (d) { tool_tip.show(d, this);})
             .on("mouseout", function (d) { tool_tip.hide(d);});
 
     // Update the Commentary
@@ -249,3 +277,86 @@ function successHandle(data) {
 
     updateChart();
 };
+
+// Reused with some modifications from: https://bl.ocks.org/HarryStevens/be559bed98d662f69e68fc8a7e0ad097
+// Calculate a linear regression from the data
+// Takes 5 parameters:
+// (1) Your data
+// (2) The column of data plotted on your x-axis
+// (3) The column of data plotted on your y-axis
+// (4) The minimum value of your x-axis
+// (5) The minimum value of your y-axis
+// Returns an object with two points, where each point is an object with an x and y coordinate
+function calcLinear(data, x, y, minX, minY) {
+    /////////
+    //SLOPE//
+    /////////
+
+    // Let n = the number of data points
+    var n = data.length;
+
+    // Get just the points
+    var pts = [];
+    data.forEach(function(d,i){
+        var obj = {};
+        obj.x = d[x];
+        obj.y = d[y];
+        obj.mult = obj.x*obj.y;
+        pts.push(obj);
+    });
+
+    // Let a equal n times the summation of all x-values multiplied by their corresponding y-values
+    // Let b equal the sum of all x-values times the sum of all y-values
+    // Let c equal n times the sum of all squared x-values
+    // Let d equal the squared sum of all x-values
+    var sum = 0;
+    var xSum = 0;
+    var ySum = 0;
+    var sumSq = 0;
+    pts.forEach(function(pt){
+        sum = sum + pt.mult;
+        xSum = xSum + pt.x;
+        ySum = ySum + pt.y;
+        sumSq = sumSq + (pt.x * pt.x);
+    });
+    var a = sum * n;
+    var b = xSum * ySum;
+    var c = sumSq * n;
+    var d = xSum * xSum;
+
+    // Plug the values that you calculated for a, b, c, and d into the following equation to calculate the slope
+    // slope = m = (a - b) / (c - d)
+    var m = (a - b) / (c - d);
+
+    /////////////
+    //INTERCEPT//
+    /////////////
+
+    // Let e equal the sum of all y-values
+    var e = ySum;
+
+    // Let f equal the slope times the sum of all x-values
+    var f = m * xSum;
+
+    // Plug the values you have calculated for e and f into the following equation for the y-intercept
+    // y-intercept = b = (e - f) / n
+    var b = (e - f) / n;
+
+            // Print the equation below the chart
+            document.getElementsByClassName("equation")[0].innerHTML = "y = " + m + "x + " + b;
+            document.getElementsByClassName("equation")[1].innerHTML = "x = ( y - " + b + " ) / " + m;
+
+    // return an object of two points
+    // each point is an object with an x and y coordinate
+    return {
+        ptA : {
+        x: minX,
+        y: m * minX + b
+        },
+        ptB : {
+        y: minY,
+        x: (minY - b) / m
+        }
+    }
+
+    }
