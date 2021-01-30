@@ -1,5 +1,6 @@
 ////////////////////////////////////////////////////////////////////////////////////////
 // Set width and height parameters to be used in the canvas
+////////////////////////////////////////////////////////////////////////////////////////
 var svgWidth = 900;
 var svgHeight = 600;
 
@@ -13,6 +14,7 @@ var margin = {
 
 ////////////////////////////////////////////////////////////////////////////////////////
 // Create the width and height based svg margins and parameters to fit chart group within the canvas
+////////////////////////////////////////////////////////////////////////////////////////
 var width = svgWidth - margin.left - margin.right;
 var height = svgHeight - margin.top - margin.bottom;
 
@@ -37,6 +39,7 @@ var yAxis = chartGroup.append("g").attr("class", "y-axis");
 
 ////////////////////////////////////////////////////////////////////////////////////////
 // Global Options
+////////////////////////////////////////////////////////////////////////////////////////
 var optionListX = ["poverty", "age", "income"];
 var optionX = 0;
 var optionListY = ["healthcare", "smokes", "obesity"]
@@ -44,9 +47,13 @@ var optionY = 0;
 var healthData = [];
 var optionListXTitle = ["Poverty", "Age", "Income"];
 var optionListYTitle = ["Health Care", "Smokes", "Obesity"];
+var circleRadius = 14;
+var abbrFontSize = "14px";
+var abbrYoffset = 4;
 
 ////////////////////////////////////////////////////////////////////////////////////////
 // Labels
+////////////////////////////////////////////////////////////////////////////////////////
 var xAxisLabels = [];
 xAxisLabels.push(xAxis.append("text")
             .attr("class", "inactive")
@@ -109,6 +116,7 @@ let chartCommentary = [
 
 ////////////////////////////////////////////////////////////////////////////////////////
 // Function to update the chart
+////////////////////////////////////////////////////////////////////////////////////////
 function updateChart() {
     // Standard transition for our visualization
     var t = d3.transition().duration(750);
@@ -151,7 +159,7 @@ function updateChart() {
     circles.enter().append("circle").transition(t)
         .attr("cx", function(d){ return x(d[optionListX[optionX]]) })
         .attr("cy", y(0))
-        .attr("r", 14)
+        .attr("r", circleRadius)
         .attr("class", "stateCircle")
         .attr("fill-opacity", 0.1)
         .transition(t)
@@ -171,20 +179,20 @@ function updateChart() {
     // Update the x/y for the remaining text
     abbrevs.transition(t)
         .attr("x", function(d){ return x(d[optionListX[optionX]]) })
-        .attr("y", function(d){ return y(d[optionListY[optionY]])+4 });
+        .attr("y", function(d){ return y(d[optionListY[optionY]]) + abbrYoffset});
 
     // Add all of the new text
     abbrevs.enter().append("text").transition(t)
         .attr("x", function(d){ return x(d[optionListX[optionX]]) })
         .attr("y", y(0))
         .attr("class", "stateText")
-        .style("font-size", "14px")
+        .style("font-size", abbrFontSize)
         .style("text-anchor", "middle")
         .attr("fill-opacity", 0.1)
         .text(d => d.abbr)
         .transition(t)
         .attr("fill-opacity", 1)
-        .attr("y", function(d){ return y(d[optionListY[optionY]])+4 });
+        .attr("y", function(d){ return y(d[optionListY[optionY]]) + abbrYoffset });
 
     // Set up the tool tip
     var tool_tip = d3.tip()
@@ -203,6 +211,7 @@ function updateChart() {
     // Update the Commentary
     var myHeader = d3.select("#healthHeader");
     myHeader.text(chartTitles[optionX][optionY]);
+
     var myCommentary = d3.select("#healthCommentary");
     myCommentary.text(chartCommentary[optionX][optionY]);
 
@@ -210,6 +219,7 @@ function updateChart() {
 
 ////////////////////////////////////////////////////////////////////////////////////////
 // Import Data
+////////////////////////////////////////////////////////////////////////////////////////
 var file = "assets/data/data.csv"
 
 // Function is called and passes csv data
