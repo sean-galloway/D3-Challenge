@@ -49,18 +49,21 @@ var xAxisLabels = [];
 xAxisLabels.push(xAxis.append("text")
             .attr("class", "inactive")
             .attr("transform", "translate(" + width/2 + ", 0)")
-            .attr("y", -46)
-            .text("In Poverty (%)"));
+            .attr("y", 30)
+            .text("In Poverty (%)")
+            .on("click", function (d) { optionX = 0; updateChart();}));
 xAxisLabels.push(xAxis.append("text")
             .attr("class", "inactive")
             .attr("transform", "translate(" + width/2 + ", 0)")
-            .attr("y", -26)
-            .text("Age (Median)"));
+            .attr("y", 50)
+            .text("Age (Median)")
+            .on("click", function (d) { optionX = 1; updateChart();}));
 xAxisLabels.push(xAxis.append("text")
             .attr("class", "inactive")
             .attr("transform", "translate(" + width/2 + ", 0)")
-            .attr("y", -6)
-            .text("Household Income (Median)"));
+            .attr("y", 70)
+            .text("Household Income (Median)")
+            .on("click", function (d) { optionX = 2; updateChart();}));
 
 var yAxisLabels = [];
 yAxisLabels.push(yAxis.append("text")
@@ -68,19 +71,22 @@ yAxisLabels.push(yAxis.append("text")
             .attr("transform", "rotate(-90)")
             .attr("x", -height/2)
             .attr("y", -margin.left + 60)
-            .text("Lacks Healthcare (%)"));
+            .text("Lacks Healthcare (%)")
+            .on("click", function (d) { optionY = 0; updateChart();}));
 yAxisLabels.push(yAxis.append("text")
             .attr("class", "inactive")
             .attr("transform", "rotate(-90)")
             .attr("x", -height/2)
             .attr("y", -margin.left + 40)
-            .text("Smokes (%)"));
+            .text("Smokes (%)")
+            .on("click", function (d) { optionY = 1; updateChart();}));
 yAxisLabels.push(yAxis.append("text")
             .attr("class", "inactive")
             .attr("transform", "rotate(-90)")
             .attr("x", -height/2)
             .attr("y", -margin.left + 20)
-            .text("Obese (%)"));
+            .text("Obese (%)")
+            .on("click", function (d) { optionY = 2; updateChart();}));
 
 ////////////////////////////////////////////////////////////////////////////////////////
 // Function to update the chart
@@ -88,38 +94,78 @@ function updateChart() {
     // Standard transition for our visualization
     var t = d3.transition().duration(750);
 
-    // Update our scales
-    x.domain([d3.min(healthData, function(d){ return d[xAxisLabels[optionX]]; }) / 1.05,
-        d3.max(data, function(d){ return d[xAxisLabels[optionX]]; }) * 1.05])
-    y.domain([d3.min(healthData, function(d){ return d[yAxisLabels[optionY]]; }) / 1.05,
-        d3.max(data, function(d){ return d[yAxisLabels[optionY]]; }) * 1.05])
+    console.log(`updateChart X: ${optionX} : ${optionListX[optionX]}`);
+    console.log(`updateChart Y: ${optionY} : ${optionListY[optionY]}`);
 
-    // Update our axes
+    // Update the css for the axis's that are selected
+    xAxisLabels.forEach(item => item.attr("class", "inactive"));
+    yAxisLabels.forEach(item => item.attr("class", "inactive"));
+    xAxisLabels[optionX].attr("class", "active");
+    yAxisLabels[optionY].attr("class", "active");
+
+    // Update the scales
+    x.domain([d3.min(healthData, function(d){ return d[optionListX[optionX]]; }) / 1.05,
+        d3.max(healthData, function(d){ return d[optionListX[optionX]]; }) * 1.05])
+    y.domain([d3.min(healthData, function(d){ return d[optionListY[optionY]]; }) / 1.05,
+        d3.max(healthData, function(d){ return d[optionListY[optionY]]; }) * 1.05])
+
+    // Update the axes
     xAxis.transition(t).call(xAxisCall);
     yAxis.transition(t).call(yAxisCall);
 
-    // Update our circles
+    // Update the circles
     var circles = chartGroup.selectAll("circle")
         .data(healthData);
 
+    // remove the unused circles
     circles.exit().transition(t)
+        .attr("fill-opacity", 0.1)
+        .attr("cy", y(0))
+        .remove();
+
+    // Update the cx/cy for the remaining circles
+    circles.transition(t)
+        .attr("cx", function(d){ return x(d[optionListX[optionX]]) })
+        .attr("cy", function(d){ return y(d[optionListY[optionY]]) });
+
+    // Add all of the new circles
+    circles.enter().append("circle").transition(t)
+        .attr("cx", function(d){ return x(d[optionListX[optionX]]) })
+        .attr("cy", y(0))
+        .attr("r", 14)
+        .attr("class", "stateCircle")
+        .attr("fill-opacity", 0.1)
+        .transition(t)
+        .attr("fill-opacity", 1)
+        .attr("cy", function(d){ return y(d[optionListY[optionY]]) });
+
+    // Update the text abbreviations
+    var abbrevs = chartGroup.selectAll()
+        .data(healthData);
+
+    // remove the unused text
+    abbrevs.exit().transition(t)
         .attr("fill-opacity", 0.1)
         .attr("cy", y(0))
         .remove()
 
-    circles.transition(t)
-        .attr("cx", function(d){ return x(d[xAxisLabels[optionX]]) })
-        .attr("cy", function(d){ return y(d[yAxisLabels[optionY]]) })
+    // Update the x/y for the remaining text
+    abbrevs.transition(t)
+        .attr("x", function(d){ return x(d[optionListX[optionX]]) })
+        .attr("y", function(d){ return y(d[optionListY[optionY]])+4 });
 
-    circles.enter().append("circle").transition(t)
-        .attr("cx", function(d){ return x(d[xAxisLabels[optionX]]) })
-        .attr("cy", y(0))
-        .attr("r", 14)
-        .classed("stateCircle", true)
+    // Add all of the new text
+    abbrevs.enter().append("text").transition(t)
+        .attr("x", function(d){ return x(d[optionListX[optionX]]) })
+        .attr("y", y(0))
+        .attr("class", "stateText")
+        .style("font-size", "14px")
+        .style("text-anchor", "middle")
         .attr("fill-opacity", 0.1)
+        .text(d => d.abbr)
         .transition(t)
         .attr("fill-opacity", 1)
-        .attr("cy", function(d){ return y(d[yAxisLabels[optionY]]) });
+        .attr("y", function(d){ return y(d[optionListY[optionY]])+4 });
 
 }
 
