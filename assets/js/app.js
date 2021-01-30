@@ -73,7 +73,7 @@ yAxisLabels.push(yAxis.append("text")
             .attr("transform", "rotate(-90)")
             .attr("x", -height/2)
             .attr("y", -margin.left + 60)
-            .text("Lacks Healthcare (%)")
+            .text("Lacks Health Care (%)")
             .on("click", function (d) { optionY = 0; updateChart();}));
 yAxisLabels.push(yAxis.append("text")
             .attr("class", "inactive")
@@ -89,6 +89,23 @@ yAxisLabels.push(yAxis.append("text")
             .attr("y", -margin.left + 20)
             .text("Obese (%)")
             .on("click", function (d) { optionY = 2; updateChart();}));
+
+let chartTitles = [
+                    ["Poverty versus Lacks Health Care", "Poverty versus Smokes", "Poverty versus Obesity"],
+                    ["Age versus Lacks Health Care", "Age versus Smokes", "Age versus Obesity"],
+                    ["Household Income versus Lacks Health Care", "Household Income versus Smokes", "Household Income versus Obesity"]
+                ];
+let chartCommentary = [
+                        ["There is a correlation between Poverty and Health care. As Poverty increases, one is more likely to Lack Health Care",
+                            "There is a correlation between Poverty and Smoking. As Poverty increases, one is more likely to Smoke",
+                            "There is a correlation between Poverty and Obesity. As Poverty increases, one is more likely to be Obese"],
+                        ["There is a correlation between Age and Health Care. As Age decreases, one is more likely to Lack Health Care",
+                            "There is a correlation between Age and Smoking. As Age increases, one is more likely to Smoke",
+                            "There is a small correlation between Age and Obesity. As Age increases, one is more likely to be Obese"],
+                        ["There is a small correlation between Household Income and Lacks Health Care. As Household Income decreases, one is more likely to Lack Health Care",
+                            "There is a correlation between Household Income and Smoking. As Household Income increases, one is less likely to Smoke",
+                            "There is a correlation between Household Income and Obesity. As Household Income increases, one is less likely to be Obese"]
+                    ];
 
 ////////////////////////////////////////////////////////////////////////////////////////
 // Function to update the chart
@@ -180,7 +197,15 @@ function updateChart() {
 
     // Set up the listeners
     circles.on("mouseover", function (d) { tool_tip.show(d, this);})
+            .on("mousemove", function (d) { tool_tip.show(d, this);})
             .on("mouseout", function (d) { tool_tip.hide(d);});
+
+    // Update the Commentary
+    var myHeader = d3.select("#healthHeader");
+    myHeader.text(chartTitles[optionX][optionY]);
+    var myCommentary = d3.select("#healthCommentary");
+    myCommentary.text(chartCommentary[optionX][optionY]);
+
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////
