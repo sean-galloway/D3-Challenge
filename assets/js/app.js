@@ -42,6 +42,8 @@ var optionX = 0;
 var optionListY = ["healthcare", "smokes", "obesity"]
 var optionY = 0;
 var healthData = [];
+var optionListXTitle = ["Poverty", "Age", "Income"];
+var optionListYTitle = ["Health Care", "Smokes", "Obesity"];
 
 ////////////////////////////////////////////////////////////////////////////////////////
 // Labels
@@ -140,13 +142,13 @@ function updateChart() {
         .attr("cy", function(d){ return y(d[optionListY[optionY]]) });
 
     // Update the text abbreviations
-    var abbrevs = chartGroup.selectAll()
+    var abbrevs = chartGroup.selectAll(".stateText")
         .data(healthData);
 
     // remove the unused text
     abbrevs.exit().transition(t)
         .attr("fill-opacity", 0.1)
-        .attr("cy", y(0))
+        .attr("y", y(0))
         .remove()
 
     // Update the x/y for the remaining text
@@ -167,6 +169,18 @@ function updateChart() {
         .attr("fill-opacity", 1)
         .attr("y", function(d){ return y(d[optionListY[optionY]])+4 });
 
+    // Set up the tool tip
+    var tool_tip = d3.tip()
+        .attr("class", "d3-tip")
+        .offset([-8, 0])
+        .html(function(d) { return `${d.state}<br>${optionListXTitle[optionX]}: ${d[optionListX[optionX]]}<br>${optionListYTitle[optionY]}: ${d[optionListY[optionY]]}`; });
+
+    // Link the tool tip to the chart
+    chartGroup.call(tool_tip);
+
+    // Set up the listeners
+    circles.on("mouseover", function (d) { tool_tip.show(d, this);})
+            .on("mouseout", function (d) { tool_tip.hide(d);});
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////
