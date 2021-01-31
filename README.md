@@ -1,6 +1,6 @@
 # D3-Challenge
 
-D3 Challenge, You need to create a scatter plot between multiple set of the data variables such as Healthcare vs. Poverty or Smokers vs. Age.
+D3 Challenge, You need to create a scatter plot between multiple sets of the data variables such as Healthcare vs. Poverty or Smokers vs. Age.
 
 For the X-Axis, I chose these data points:
 
