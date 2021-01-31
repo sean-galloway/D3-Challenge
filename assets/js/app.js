@@ -133,6 +133,7 @@ function updateChart() {
     for (var i=0; i<result_values_x.length; i++) {
         regLineFull.push({x: result_values_x[i], y: result_values_y[i]});
     }
+
     var regLine = [];
     regLine.push(regLineFull[0]);
     regLine.push(regLineFull[regLineFull.length-1]);
@@ -155,18 +156,17 @@ function updateChart() {
     yAxisLabels[optionY].attr("class", "active");
 
     // Update the scales
-    x.domain([d3.min(healthData, function(d){ return d[optionListX[optionX]]; }) / 1.05,
-        d3.max(healthData, function(d){ return d[optionListX[optionX]]; }) * 1.05])
-    y.domain([d3.min(healthData, function(d){ return d[optionListY[optionY]]; }) / 1.05,
-        d3.max(healthData, function(d){ return d[optionListY[optionY]]; }) * 1.05])
+    x.domain([  d3.min(healthData, d => d[optionListX[optionX]]) / 1.05,
+                d3.max(healthData, d => d[optionListX[optionX]]) * 1.05])
+    y.domain([  d3.min(healthData, d => d[optionListY[optionY]]) / 1.05,
+                d3.max(healthData, d => d[optionListY[optionY]]) * 1.05])
 
     // Update the axes
     xAxis.transition(t).call(xAxisCall);
     yAxis.transition(t).call(yAxisCall);
 
     // update the lines
-    var regressionLine = chartGroup.selectAll(".regression")
-                            .data(regLine);
+    var regressionLine = chartGroup.selectAll(".regression").data(regLine);
 
     // remove the unused lines
     regressionLine.exit().transition(t)
@@ -175,8 +175,7 @@ function updateChart() {
         .remove();
 
     // Update the x/y for the remaining lines
-    regressionLine.transition(t)
-        .attr("d", lineGenerator(regLine))
+    regressionLine.transition(t).attr("d", lineGenerator(regLine))
 
     // Add all of the new lines
     regressionLine.enter().append("path").transition(t)
@@ -188,8 +187,7 @@ function updateChart() {
         .attr("d", lineGenerator(regLine));
 
     // Update the circles
-    var circles = chartGroup.selectAll(".stateCircle")
-        .data(healthData);
+    var circles = chartGroup.selectAll(".stateCircle").data(healthData);
 
     // remove the unused circles
     circles.exit().transition(t)
@@ -199,23 +197,22 @@ function updateChart() {
 
     // Update the cx/cy for the remaining circles
     circles.transition(t)
-        .attr("cx", function(d){ return x(d[optionListX[optionX]]) })
-        .attr("cy", function(d){ return y(d[optionListY[optionY]]) });
+        .attr("cx", d => x(d[optionListX[optionX]]))
+        .attr("cy", d => y(d[optionListY[optionY]]));
 
     // Add all of the new circles
     circles.enter().append("circle").transition(t)
-        .attr("cx", function(d){ return x(d[optionListX[optionX]]) })
+        .attr("cx", d => x(d[optionListX[optionX]]))
         .attr("cy", y(0))
         .attr("r", circleRadius)
         .attr("class", "stateCircle")
         .attr("fill-opacity", 0.1)
         .transition(t)
         .attr("fill-opacity", 1)
-        .attr("cy", function(d){ return y(d[optionListY[optionY]]) });
+        .attr("cy", d => y(d[optionListY[optionY]]));
 
     // Update the text abbreviations
-    var abbrevs = chartGroup.selectAll(".stateText")
-        .data(healthData);
+    var abbrevs = chartGroup.selectAll(".stateText").data(healthData);
 
     // remove the unused text
     abbrevs.exit().transition(t)
@@ -225,12 +222,12 @@ function updateChart() {
 
     // Update the x/y for the remaining text
     abbrevs.transition(t)
-        .attr("x", function(d){ return x(d[optionListX[optionX]]) })
-        .attr("y", function(d){ return y(d[optionListY[optionY]]) + abbrYoffset});
+        .attr("x", d => x(d[optionListX[optionX]]))
+        .attr("y", d => y(d[optionListY[optionY]]) + abbrYoffset);
 
     // Add all of the new text
     abbrevs.enter().append("text").transition(t)
-        .attr("x", function(d){ return x(d[optionListX[optionX]]) })
+        .attr("x", d => x(d[optionListX[optionX]]))
         .attr("y", y(0))
         .attr("class", "stateText")
         .style("font-size", abbrFontSize)
@@ -239,7 +236,7 @@ function updateChart() {
         .text(d => d.abbr)
         .transition(t)
         .attr("fill-opacity", 1)
-        .attr("y", function(d){ return y(d[optionListY[optionY]]) + abbrYoffset });
+        .attr("y", d => y(d[optionListY[optionY]]) + abbrYoffset );
 
     // Update the circles
     var transCircles = chartGroup.selectAll(".stateCircleTrans")
@@ -254,25 +251,25 @@ function updateChart() {
 
     // Update the cx/cy for the remaining circles
     transCircles.transition(t)
-        .attr("cx", function(d){ return x(d[optionListX[optionX]]) })
-        .attr("cy", function(d){ return y(d[optionListY[optionY]]) });
+        .attr("cx", d => x(d[optionListX[optionX]]))
+        .attr("cy", d => y(d[optionListY[optionY]]));
 
     // Add all of the new circles
     transCircles.enter().append("circle").transition(t)
-        .attr("cx", function(d){ return x(d[optionListX[optionX]]) })
+        .attr("cx", d => x(d[optionListX[optionX]]))
         .attr("cy", y(0))
         .attr("r", circleRadius)
         .attr("class", "stateCircleTrans")
         .attr("fill-opacity", 0.0)
         .transition(t)
         .attr("fill-opacity", 0.0)
-        .attr("cy", function(d){ return y(d[optionListY[optionY]]) });
+        .attr("cy", d => y(d[optionListY[optionY]]));
 
     // Set up the tool tip
     var tool_tip = d3.tip()
         .attr("class", "d3-tip")
         .offset([-8, 0])
-        .html(function(d) { return `<strong>${d.state}</strong><br>${optionListXTitle[optionX]}: ${d[optionListX[optionX]]}<br>${optionListYTitle[optionY]}: ${d[optionListY[optionY]]}`; });
+        .html(d => `<strong>${d.state}</strong><br>${optionListXTitle[optionX]}: ${d[optionListX[optionX]]}<br>${optionListYTitle[optionY]}: ${d[optionListY[optionY]]}`);
 
     // Link the tool tip to the chart
     svg.call(tool_tip);
@@ -335,9 +332,7 @@ function findLineByLeastSquares(values_x, values_y) {
     var xx_sum = 0;
     var count = 0;
 
-    /*
-     * The above is just for quick access, makes the program faster
-     */
+     // The above is just for quick access, makes the program faster
     var x = 0;
     var y = 0;
     var values_length = values_x.length;
@@ -346,17 +341,13 @@ function findLineByLeastSquares(values_x, values_y) {
         throw new Error('The parameters values_x and values_y need to have same size!');
     }
 
-    /*
-     * Above and below cover edge cases
-     */
+     // Above and below cover edge cases
     if (values_length === 0) {
         return [ [], [] ];
     }
 
-    /*
-     * Calculate the sum for each of the parts necessary.
-     */
-    for (let i = 0; i< values_length; i++) {
+    // Calculate the sum for each of the parts necessary.
+    for (let i = 0; i < values_length; i++) {
         x = values_x[i];
         y = values_y[i];
         x_sum+= x;
@@ -366,23 +357,19 @@ function findLineByLeastSquares(values_x, values_y) {
         count++;
     }
 
-    /*
-     * Calculate m and b for the line equation:
-     * y = x * m + b
-     */
+    // Calculate m and b for the line equation:
+    // y = x * m + b
     var m = (count*xy_sum - x_sum*y_sum) / (count*xx_sum - x_sum*x_sum);
     var b = (y_sum/count) - (m*x_sum)/count;
 
-    /*
-     * We then return the x and y data points according to our fit
-     */
+    // We then return the x and y data points according to our fit
     var result_values_x = [];
     var result_values_y = [];
     var values_x_sort = values_x.sort((a, b) => a - b);
     // console.log(`values_x: ${values_x}`);
     // console.log(`values_x_sort: ${values_x_sort}`);
     for (let i = 0; i < values_length; i++) {
-        x = values_x[i];
+        x = values_x_sort[i];
         y = x * m + b;
         result_values_x.push(x);
         result_values_y.push(y);
