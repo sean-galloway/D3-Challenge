@@ -124,6 +124,30 @@ function updateChart() {
     console.log(`updateChart X: ${optionX} : ${optionListX[optionX]}`);
     console.log(`updateChart Y: ${optionY} : ${optionListY[optionY]}`);
 
+    // Do the Linear Regression Line First
+    var xReg = healthData.map(item => item[optionListX[optionX]]);
+    var yReg = healthData.map(item => item[optionListY[optionY]]);
+    var [result_values_x, result_values_y, m, b] =  findLineByLeastSquares(xReg, yReg);
+
+    var regLineFull = [];
+    for (var i=0; i<result_values_x.length; i++) {
+        regLineFull.push({x: result_values_x[i], y: result_values_y[i]});
+    }
+    var regLine = [];
+    regLine.push(regLineFull[0]);
+    regLine.push(regLineFull[regLineFull.length-1]);
+    // console.log(regLineFull);
+    // console.log(regLine);
+    var lineGenerator = d3.line()
+                    .x(d => x(d.x))
+                    .y(d => y(d.y));
+    var lineGeneratorZeroY = d3.line()
+                    .x(d => x(d.x))
+                    .y(d => y(0));
+
+    var myEquation = d3.select("#equation");
+    myEquation.text(`Linear Regression Equation: y = ${m.toFixed(4)}x + ${b.toFixed(4)}`);
+
     // Update the css for the axis's that are selected
     xAxisLabels.forEach(item => item.attr("class", "inactive"));
     yAxisLabels.forEach(item => item.attr("class", "inactive"));
@@ -139,6 +163,29 @@ function updateChart() {
     // Update the axes
     xAxis.transition(t).call(xAxisCall);
     yAxis.transition(t).call(yAxisCall);
+
+    // update the lines
+    var regressionLine = chartGroup.selectAll(".regression")
+                            .data(regLine);
+
+    // remove the unused lines
+    regressionLine.exit().transition(t)
+        .attr("fill-opacity", 0.1)
+        .attr("y", y(0))
+        .remove();
+
+    // Update the x/y for the remaining lines
+    regressionLine.transition(t)
+        .attr("d", lineGenerator(regLine))
+
+    // Add all of the new lines
+    regressionLine.enter().append("path").transition(t)
+        .attr("class", "regression")
+        .attr("fill-opacity", 0.1)
+        .attr("d", lineGeneratorZeroY(regLine))
+        .transition(t)
+        .attr("fill-opacity", 1)
+        .attr("d", lineGenerator(regLine));
 
     // Update the circles
     var circles = chartGroup.selectAll(".stateCircle")
@@ -278,85 +325,68 @@ function successHandle(data) {
     updateChart();
 };
 
-// Reused with some modifications from: https://bl.ocks.org/HarryStevens/be559bed98d662f69e68fc8a7e0ad097
-// Calculate a linear regression from the data
-// Takes 5 parameters:
-// (1) Your data
-// (2) The column of data plotted on your x-axis
-// (3) The column of data plotted on your y-axis
-// (4) The minimum value of your x-axis
-// (5) The minimum value of your y-axis
-// Returns an object with two points, where each point is an object with an x and y coordinate
-function calcLinear(data, x, y, minX, minY) {
-    /////////
-    //SLOPE//
-    /////////
+////////////////////////////////////////////////////////////////////////////////////////
+// Linear Regression Function
+////////////////////////////////////////////////////////////////////////////////////////
+function findLineByLeastSquares(values_x, values_y) {
+    var x_sum = 0;
+    var y_sum = 0;
+    var xy_sum = 0;
+    var xx_sum = 0;
+    var count = 0;
 
-    // Let n = the number of data points
-    var n = data.length;
+    /*
+     * The above is just for quick access, makes the program faster
+     */
+    var x = 0;
+    var y = 0;
+    var values_length = values_x.length;
 
-    // Get just the points
-    var pts = [];
-    data.forEach(function(d,i){
-        var obj = {};
-        obj.x = d[x];
-        obj.y = d[y];
-        obj.mult = obj.x*obj.y;
-        pts.push(obj);
-    });
-
-    // Let a equal n times the summation of all x-values multiplied by their corresponding y-values
-    // Let b equal the sum of all x-values times the sum of all y-values
-    // Let c equal n times the sum of all squared x-values
-    // Let d equal the squared sum of all x-values
-    var sum = 0;
-    var xSum = 0;
-    var ySum = 0;
-    var sumSq = 0;
-    pts.forEach(function(pt){
-        sum = sum + pt.mult;
-        xSum = xSum + pt.x;
-        ySum = ySum + pt.y;
-        sumSq = sumSq + (pt.x * pt.x);
-    });
-    var a = sum * n;
-    var b = xSum * ySum;
-    var c = sumSq * n;
-    var d = xSum * xSum;
-
-    // Plug the values that you calculated for a, b, c, and d into the following equation to calculate the slope
-    // slope = m = (a - b) / (c - d)
-    var m = (a - b) / (c - d);
-
-    /////////////
-    //INTERCEPT//
-    /////////////
-
-    // Let e equal the sum of all y-values
-    var e = ySum;
-
-    // Let f equal the slope times the sum of all x-values
-    var f = m * xSum;
-
-    // Plug the values you have calculated for e and f into the following equation for the y-intercept
-    // y-intercept = b = (e - f) / n
-    var b = (e - f) / n;
-
-            // Print the equation below the chart
-            document.getElementsByClassName("equation")[0].innerHTML = "y = " + m + "x + " + b;
-            document.getElementsByClassName("equation")[1].innerHTML = "x = ( y - " + b + " ) / " + m;
-
-    // return an object of two points
-    // each point is an object with an x and y coordinate
-    return {
-        ptA : {
-        x: minX,
-        y: m * minX + b
-        },
-        ptB : {
-        y: minY,
-        x: (minY - b) / m
-        }
+    if (values_length != values_y.length) {
+        throw new Error('The parameters values_x and values_y need to have same size!');
     }
 
+    /*
+     * Above and below cover edge cases
+     */
+    if (values_length === 0) {
+        return [ [], [] ];
     }
+
+    /*
+     * Calculate the sum for each of the parts necessary.
+     */
+    for (let i = 0; i< values_length; i++) {
+        x = values_x[i];
+        y = values_y[i];
+        x_sum+= x;
+        y_sum+= y;
+        xx_sum += x*x;
+        xy_sum += x*y;
+        count++;
+    }
+
+    /*
+     * Calculate m and b for the line equation:
+     * y = x * m + b
+     */
+    var m = (count*xy_sum - x_sum*y_sum) / (count*xx_sum - x_sum*x_sum);
+    var b = (y_sum/count) - (m*x_sum)/count;
+
+    /*
+     * We then return the x and y data points according to our fit
+     */
+    var result_values_x = [];
+    var result_values_y = [];
+    var values_x_sort = values_x.sort((a, b) => a - b);
+    // console.log(`values_x: ${values_x}`);
+    // console.log(`values_x_sort: ${values_x_sort}`);
+    for (let i = 0; i < values_length; i++) {
+        x = values_x[i];
+        y = x * m + b;
+        result_values_x.push(x);
+        result_values_y.push(y);
+    }
+
+    return [result_values_x, result_values_y, m, b];
+}
