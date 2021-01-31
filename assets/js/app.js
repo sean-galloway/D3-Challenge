@@ -1,4 +1,18 @@
 ////////////////////////////////////////////////////////////////////////////////////////
+// Global Options
+////////////////////////////////////////////////////////////////////////////////////////
+var optionListX = ["poverty", "age", "income"];
+var optionX = 0;
+var optionListY = ["healthcare", "smokes", "obesity"]
+var optionY = 0;
+var healthData = [];
+var optionListXTitle = ["Poverty", "Age", "Income"];
+var optionListYTitle = ["Health Care", "Smokes", "Obesity"];
+var circleRadius = 14;
+var abbrFontSize = "14px";
+var abbrYoffset = 4;
+
+////////////////////////////////////////////////////////////////////////////////////////
 // Set width and height parameters to be used in the canvas
 ////////////////////////////////////////////////////////////////////////////////////////
 var svgWidth = 900;
@@ -26,30 +40,17 @@ var svg = d3.select("#scatter").append("svg").attr("width", svgWidth).attr("heig
 // Use transform attribute to fit it within the canvas
 var chartGroup = svg.append("g").attr("transform", `translate(${margin.left}, ${margin.top})`);
 
-// Scales
+////////////////////////////////////////////////////////////////////////////////////////
+// Scales and Axes
+////////////////////////////////////////////////////////////////////////////////////////
 var x = d3.scaleLinear().range([0, width]);
 var y = d3.scaleLinear().range([height, 0]);
 
-// Axes
 var xAxisCall = d3.axisBottom(x)
 var xAxis = chartGroup.append("g").attr("class", "x-axis").attr("transform", "translate(" + 0 + "," + height + ")");
 
 var yAxisCall = d3.axisLeft(y)
 var yAxis = chartGroup.append("g").attr("class", "y-axis");
-
-////////////////////////////////////////////////////////////////////////////////////////
-// Global Options
-////////////////////////////////////////////////////////////////////////////////////////
-var optionListX = ["poverty", "age", "income"];
-var optionX = 0;
-var optionListY = ["healthcare", "smokes", "obesity"]
-var optionY = 0;
-var healthData = [];
-var optionListXTitle = ["Poverty", "Age", "Income"];
-var optionListYTitle = ["Health Care", "Smokes", "Obesity"];
-var circleRadius = 14;
-var abbrFontSize = "14px";
-var abbrYoffset = 4;
 
 ////////////////////////////////////////////////////////////////////////////////////////
 // Labels
@@ -127,21 +128,13 @@ function updateChart() {
     // Do the Linear Regression Line First
     var xReg = healthData.map(item => item[optionListX[optionX]]);
     var yReg = healthData.map(item => item[optionListY[optionY]]);
-    var [result_values_x, result_values_y, m, b] =  findLineByLeastSquares(xReg, yReg);
+    var [result_values_x, result_values_y, m, b, regLine] =  findLineByLeastSquares(xReg, yReg);
 
-    var regLineFull = [];
-    for (var i=0; i<result_values_x.length; i++) {
-        regLineFull.push({x: result_values_x[i], y: result_values_y[i]});
-    }
-
-    var regLine = [];
-    regLine.push(regLineFull[0]);
-    regLine.push(regLineFull[regLineFull.length-1]);
-    // console.log(regLineFull);
-    // console.log(regLine);
+    // Create the Line Generators
     var lineGenerator = d3.line()
                     .x(d => x(d.x))
                     .y(d => y(d.y));
+    // This if for the zero transition line
     var lineGeneratorZeroY = d3.line()
                     .x(d => x(d.x))
                     .y(d => y(0));
@@ -149,7 +142,7 @@ function updateChart() {
     var myEquation = d3.select("#equation");
     myEquation.text(`Linear Regression Equation: y = ${m.toFixed(4)}x + ${b.toFixed(4)}`);
 
-    // Update the css for the axis's that are selected
+    // Update the css for the axis's that are selected, turn all inactive first
     xAxisLabels.forEach(item => item.attr("class", "inactive"));
     yAxisLabels.forEach(item => item.attr("class", "inactive"));
     xAxisLabels[optionX].attr("class", "active");
@@ -238,7 +231,7 @@ function updateChart() {
         .attr("fill-opacity", 1)
         .attr("y", d => y(d[optionListY[optionY]]) + abbrYoffset );
 
-    // Update the circles
+    // Update the transparent circles; these are needed so the tooltips work cleanly
     var transCircles = chartGroup.selectAll(".stateCircleTrans")
         .data(healthData);
 
@@ -375,5 +368,14 @@ function findLineByLeastSquares(values_x, values_y) {
         result_values_y.push(y);
     }
 
-    return [result_values_x, result_values_y, m, b];
+    var regLineFull = [];
+    for (var i = 0; i < result_values_x.length; i++) {
+        regLineFull.push({x: result_values_x[i], y: result_values_y[i]});
+    }
+
+    var regLine = [];
+    regLine.push(regLineFull[0]);
+    regLine.push(regLineFull[regLineFull.length-1]);
+
+    return [result_values_x, result_values_y, m, b, regLine];
 }
