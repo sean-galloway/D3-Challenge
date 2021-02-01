@@ -41,6 +41,7 @@
   fill: #89bdd3;
   fill-opacity: 0;
   stroke: #e3e3e3;
+  pointer-events: all;
 }
 
 .chart {

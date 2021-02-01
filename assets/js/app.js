@@ -38,7 +38,7 @@ var svg = d3.select("#scatter").append("svg").attr("width", svgWidth).attr("heig
 
 // Create the chartGroup that will contain the data
 // Use transform attribute to fit it within the canvas
-var chartGroup = svg.append("g").attr("transform", `translate(${margin.left}, ${margin.top})`);
+var chartGroup = svg.append("g").attr("transform", `translate(${margin.left}, ${margin.top})`).attr("pointer-events", "stroke");
 
 ////////////////////////////////////////////////////////////////////////////////////////
 // Scales and Axes
@@ -78,6 +78,7 @@ xAxisLabels.push(xAxis.append("text")
 var yAxisLabels = [];
 yAxisLabels.push(yAxis.append("text")
             .attr("class", "inactive")
+            .attr("id", optionListY[0])
             .attr("transform", "rotate(-90)")
             .attr("x", -height/2)
             .attr("y", -margin.left + 60)
@@ -85,6 +86,7 @@ yAxisLabels.push(yAxis.append("text")
             .on("click", function (d) { optionY = 0; updateChart();}));
 yAxisLabels.push(yAxis.append("text")
             .attr("class", "inactive")
+            .attr("id", optionListY[1])
             .attr("transform", "rotate(-90)")
             .attr("x", -height/2)
             .attr("y", -margin.left + 40)
@@ -92,6 +94,7 @@ yAxisLabels.push(yAxis.append("text")
             .on("click", function (d) { optionY = 1; updateChart();}));
 yAxisLabels.push(yAxis.append("text")
             .attr("class", "inactive")
+            .attr("id", optionListY[2])
             .attr("transform", "rotate(-90)")
             .attr("x", -height/2)
             .attr("y", -margin.left + 20)
@@ -265,12 +268,12 @@ function updateChart() {
         .html(d => `<strong>${d.state}</strong><br>${optionListXTitle[optionX]}: ${d[optionListX[optionX]]}<br>${optionListYTitle[optionY]}: ${d[optionListY[optionY]]}`);
 
     // Link the tool tip to the chart
-    svg.call(tool_tip);
+    chartGroup.selectAll(".stateCircleTrans").call(tool_tip);
 
     // Set up the listeners
-    transCircles
-            .on("mousemove", function (d) { tool_tip.show(d, this);})
-            .on("mouseover", function (d) { tool_tip.show(d, this);})
+    chartGroup.selectAll(".stateCircleTrans")
+            .on("mousemove", function (d) { console.log(`d: ${JSON.stringify(d)}`); tool_tip.show(d, this);})
+            .on("mouseover", function (d) { console.log(`d: ${JSON.stringify(d)}`); tool_tip.show(d, this);})
             .on("mouseout", function (d) { tool_tip.hide(d);});
 
     // Update the Commentary
@@ -279,7 +282,6 @@ function updateChart() {
 
     var myCommentary = d3.select("#healthCommentary");
     myCommentary.text(chartCommentary[optionX][optionY]);
-
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////
