@@ -61,9 +61,9 @@
 }
 
 /* Creates a small triangle extender for the tooltip */
-/*.d3-tip:after {
+.d3-tip:after {
   box-sizing: border-box;
-  display: inline;
+  /* display: inline; */
   font-size: 10px;
   width: 100%;
   line-height: 1;
@@ -71,8 +71,16 @@
   content: "\25BC";
   position: absolute;
   text-align: center;
-  offset: 0 -30;
-} */
+  /* offset: 0 -30; */
+}
+
+/* Style northward tooltips specifically */
+.d3-tip.n:after {
+  margin: 0;
+  top: 40%;
+  left: 52%;
+  transform: rotate(-90deg);
+}
 
 .regression {
   stroke-width: 2px;

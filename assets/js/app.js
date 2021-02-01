@@ -59,19 +59,19 @@ var xAxisLabels = [];
 xAxisLabels.push(xAxis.append("text")
             .attr("class", "inactive")
             .attr("transform", "translate(" + width/2 + ", 0)")
-            .attr("y", 30)
+            .attr("y", 40)
             .text("In Poverty (%)")
             .on("click", function (d) { optionX = 0; updateChart();}));
 xAxisLabels.push(xAxis.append("text")
             .attr("class", "inactive")
             .attr("transform", "translate(" + width/2 + ", 0)")
-            .attr("y", 50)
+            .attr("y", 60)
             .text("Age (Median)")
             .on("click", function (d) { optionX = 1; updateChart();}));
 xAxisLabels.push(xAxis.append("text")
             .attr("class", "inactive")
             .attr("transform", "translate(" + width/2 + ", 0)")
-            .attr("y", 70)
+            .attr("y", 80)
             .text("Household Income (Median)")
             .on("click", function (d) { optionX = 2; updateChart();}));
 
@@ -272,7 +272,7 @@ function updateChart() {
     // Set up the tool tip
     var tool_tip = d3.tip()
         .attr("class", "d3-tip")
-        .offset([-8, 0])
+        .offset([40, -70])
         .html(d => `<strong>${d.state}</strong><br>${optionListXTitle[optionX]}: ${d[optionListX[optionX]]}<br>${optionListYTitle[optionY]}: ${d[optionListY[optionY]]}`);
 
     // Link the tool tip to the chart
