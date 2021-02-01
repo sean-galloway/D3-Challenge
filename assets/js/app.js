@@ -174,8 +174,10 @@ function updateChart() {
     regressionLine.transition(t).attr("d", lineGenerator(regLine))
 
     // Add all of the new lines
-    regressionLine.enter().append("path").transition(t)
+    regressionLine.enter()
+        .append("path")
         .attr("class", "regression")
+        .transition(t)
         .attr("fill-opacity", 0.1)
         .attr("d", lineGeneratorZeroY(regLine))
         .transition(t)
@@ -197,10 +199,12 @@ function updateChart() {
         .attr("cy", d => y(d[optionListY[optionY]]));
 
     // Add all of the new circles
-    circles.enter().append("circle").transition(t)
+    circles.enter()
+        .append("circle")
+        .attr("r", circleRadius)
+        .transition(t)
         .attr("cx", d => x(d[optionListX[optionX]]))
         .attr("cy", y(0))
-        .attr("r", circleRadius)
         .attr("class", "stateCircle")
         .attr("fill-opacity", 0.1)
         .transition(t)
@@ -222,10 +226,12 @@ function updateChart() {
         .attr("y", d => y(d[optionListY[optionY]]) + abbrYoffset);
 
     // Add all of the new text
-    abbrevs.enter().append("text").transition(t)
+    abbrevs.enter()
+        .append("text")
+        .attr("class", "stateText")
+        .transition(t)
         .attr("x", d => x(d[optionListX[optionX]]))
         .attr("y", y(0))
-        .attr("class", "stateText")
         .style("font-size", abbrFontSize)
         .style("text-anchor", "middle")
         .attr("fill-opacity", 0.1)
@@ -251,11 +257,13 @@ function updateChart() {
         .attr("cy", d => y(d[optionListY[optionY]]));
 
     // Add all of the new circles
-    transCircles.enter().append("circle").transition(t)
+    transCircles.enter()
+        .append("circle")
+        .attr("class", "stateCircleTrans")
+        .transition(t)
         .attr("cx", d => x(d[optionListX[optionX]]))
         .attr("cy", y(0))
         .attr("r", circleRadius)
-        .attr("class", "stateCircleTrans")
         .attr("fill-opacity", 0.0)
         .transition(t)
         .attr("fill-opacity", 0.0)
